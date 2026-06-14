@@ -204,6 +204,94 @@ export default function App() {
     showToast(`Bill settled! ${fmt(total)} via ${paymentMode.toUpperCase()} ✅`);
   }
 
+  function printReceipt() {
+    const invoiceNo = `INV-${Date.now()}`;
+    const receiptHTML = `
+      <html><head><title>Receipt</title>
+      <style>
+        body { font-family: 'Courier New', monospace; font-size: 13px; width: 300px; margin: 0 auto; padding: 10px; color: #000; }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .lg { font-size: 16px; }
+        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+        .row { display: flex; justify-content: space-between; margin: 3px 0; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; }
+        .footer { text-align: center; margin-top: 12px; font-size: 11px; }
+      </style></head>
+      <body>
+        <div class="center bold lg">🍽️ SpiceRoute</div>
+        <div class="center" style="font-size:11px;margin-top:2px;">Restaurant & Café</div>
+        <div class="center" style="font-size:11px;">GSTIN: 24XXXXX1234X1ZX</div>
+        <div class="divider"></div>
+        <div class="row"><span>Invoice: ${invoiceNo}</span></div>
+        <div class="row"><span>Table: ${table.id}</span><span>${todayStr()} ${nowStr()}</span></div>
+        <div class="divider"></div>
+        <div class="row bold"><span>Item</span><span>Qty</span><span>Amt</span></div>
+        <div class="divider"></div>
+        ${order.map(i => `<div class="row"><span style="max-width:160px;overflow:hidden">${i.name}</span><span>×${i.qty}</span><span>${fmt(i.price * i.qty)}</span></div>`).join("")}
+        <div class="divider"></div>
+        <div class="row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+        ${discountPct > 0 ? `<div class="row"><span>Discount (${discountPct}%)</span><span>-${fmt(discountAmt)}</span></div>` : ""}
+        <div class="row"><span>GST (5%)</span><span>${fmt(tax)}</span></div>
+        <div class="row"><span>Service (10%)</span><span>${fmt(service)}</span></div>
+        <div class="total-row"><span>TOTAL</span><span>${fmt(total)}</span></div>
+        <div class="divider"></div>
+        <div class="row"><span>Payment:</span><span style="text-transform:uppercase;font-weight:bold">${paymentMode}</span></div>
+        <div class="footer">
+          <div class="divider"></div>
+          <div>Thank you for dining with us! 🙏</div>
+          <div>Visit again soon</div>
+        </div>
+      </body></html>
+    `;
+    const win = window.open("", "_blank", "width=350,height=600");
+    win.document.write(receiptHTML);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+  }
+
+  function reprintReceipt(o) {
+    const receiptHTML = `
+      <html><head><title>Receipt</title>
+      <style>
+        body { font-family: 'Courier New', monospace; font-size: 13px; width: 300px; margin: 0 auto; padding: 10px; color: #000; }
+        .center { text-align: center; } .bold { font-weight: bold; } .lg { font-size: 16px; }
+        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+        .row { display: flex; justify-content: space-between; margin: 3px 0; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; }
+        .footer { text-align: center; margin-top: 12px; font-size: 11px; }
+      </style></head>
+      <body>
+        <div class="center bold lg">🍽️ SpiceRoute</div>
+        <div class="center" style="font-size:11px;margin-top:2px;">Restaurant & Café</div>
+        <div class="center" style="font-size:11px;">GSTIN: 24XXXXX1234X1ZX</div>
+        <div class="divider"></div>
+        <div class="row"><span>Invoice: ${o.id}</span></div>
+        <div class="row"><span>Table: ${o.tableId}</span><span>${o.date} ${o.time}</span></div>
+        <div class="center bold" style="font-size:10px;margin:2px 0;">** DUPLICATE COPY **</div>
+        <div class="divider"></div>
+        <div class="row bold"><span>Item</span><span>Qty</span><span>Amt</span></div>
+        <div class="divider"></div>
+        ${o.items.map(i => `<div class="row"><span style="max-width:160px;overflow:hidden">${i.name}</span><span>×${i.qty}</span><span>${fmt(i.price * i.qty)}</span></div>`).join("")}
+        <div class="divider"></div>
+        <div class="row"><span>Subtotal</span><span>${fmt(o.subtotal)}</span></div>
+        ${o.discountAmt > 0 ? `<div class="row"><span>Discount</span><span>-${fmt(o.discountAmt)}</span></div>` : ""}
+        <div class="row"><span>GST (5%)</span><span>${fmt(o.tax)}</span></div>
+        <div class="row"><span>Service (10%)</span><span>${fmt(o.service)}</span></div>
+        <div class="total-row"><span>TOTAL</span><span>${fmt(o.total)}</span></div>
+        <div class="divider"></div>
+        <div class="row"><span>Payment:</span><span style="text-transform:uppercase;font-weight:bold">${o.paymentMode}</span></div>
+        <div class="footer"><div class="divider"></div><div>Thank you for dining with us! 🙏</div></div>
+      </body></html>
+    `;
+    const win = window.open("", "_blank", "width=350,height=600");
+    win.document.write(receiptHTML);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+  }
+
   const totalRevenue = completedOrders.reduce((s, o) => s + o.total, 0);
   const todayOrders = completedOrders.length;
   const avgOrder = todayOrders ? totalRevenue / todayOrders : 0;
@@ -627,9 +715,14 @@ export default function App() {
                     <div style={{ fontWeight: 600, fontSize: 13 }}>{o.id}</div>
                     <div style={{ fontSize: 12, color: C.gray }}>Table {o.tableId} · {o.time} · {o.items.length} items</div>
                   </div>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: C.lightGray, color: C.gray, textTransform: "uppercase" }}>{o.paymentMode}</span>
                     <span style={{ fontWeight: 700, fontSize: 15, color: C.primary }}>{fmt(o.total)}</span>
+                    <button onClick={() => reprintReceipt(o)} style={{
+                      padding: "4px 10px", borderRadius: 7, fontSize: 12, fontWeight: 600,
+                      border: `1.5px solid ${C.border}`, background: C.white,
+                      cursor: "pointer", color: C.gray,
+                    }}>🖨️</button>
                   </div>
                 </div>
               ))}
@@ -706,16 +799,21 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
                 <button onClick={() => setShowBill(false)} style={{
                   flex: 1, padding: "12px 0", borderRadius: 10,
                   border: `1.5px solid ${C.border}`, background: "transparent",
-                  color: C.dark, fontWeight: 600, cursor: "pointer",
+                  color: C.dark, fontWeight: 600, cursor: "pointer", fontSize: 13,
                 }}>Cancel</button>
+                <button onClick={printReceipt} style={{
+                  flex: 1, padding: "12px 0", borderRadius: 10,
+                  border: `1.5px solid ${C.primary}`, background: "transparent",
+                  color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13,
+                }}>🖨️ Print</button>
                 <button onClick={settleBill} style={{
                   flex: 2, padding: "12px 0", borderRadius: 10, border: "none",
-                  background: C.primary, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer",
-                }}>Settle Bill ✓</button>
+                  background: C.primary, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                }}>Settle ✓</button>
               </div>
             </div>
           </div>
