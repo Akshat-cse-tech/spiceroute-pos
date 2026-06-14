@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 const styles = `
@@ -259,7 +260,7 @@ const styles = `
   }
 `;
 
-export default function LoginPage() {
+export default function LoginPage({ onLogin }) { 
   const [tab, setTab] = useState("in");
   const [role, setRole] = useState({ in: null, up: null });
   const [form, setForm] = useState({
@@ -270,10 +271,9 @@ export default function LoginPage() {
   });
 
   const handleSignIn = (e) => {
-    e.preventDefault();
-    console.log("Sign in:", { email: form.email, password: form.password, role: role.in });
-  };
-
+  e.preventDefault();
+  onLogin({ email: form.email, role: role.in ?? "cashier" });
+};
   const handleSignUp = (e) => {
     e.preventDefault();
     console.log("Sign up:", {
